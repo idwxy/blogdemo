@@ -38,4 +38,9 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(userEntity, "用户名或密码错误");
         return userEntity;
     }
+
+    @Override
+    public void updatePassword(int uid, String password) {
+        userMapper.updatePassword(uid, new BCryptPasswordEncoder().encode(password));
+    }
 }
