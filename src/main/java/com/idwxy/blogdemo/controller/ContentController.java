@@ -1,5 +1,6 @@
 package com.idwxy.blogdemo.controller;
 
+import com.idwxy.blogdemo.entity.ContentEntity;
 import com.idwxy.blogdemo.security.IsUser;
 import com.idwxy.blogdemo.service.ContentService;
 import com.idwxy.blogdemo.service.TagsService;
@@ -10,11 +11,9 @@ import io.swagger.annotations.ApiOperation;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/content")
@@ -40,5 +39,19 @@ public class ContentController {
         }
         int cid = contentService.createContent(title, content, tagsSpliced, Util.getCurrentUid());
         return new Result(HttpStatus.OK.value(), "文章创建成功", cid);
+    }
+
+    @ApiOperation(value = "删除文章")
+    @IsUser
+    @DeleteMapping("/{cid}")
+    public Result deleteContent(@PathVariable int cid) {
+        ContentEntity contentEntity = contentService.getContent(cid);
+        Assert.notNull(contentEntity, "文章不存在");
+        boolean isPermit = contentEntity.getAuthorId() == Util.getCurrentUid();
+        if (! isPermit) {
+            return new Result(HttpStatus.BAD_REQUEST.value(), "你无权删除别人的文章", null);
+        }
+        contentService.deleteContent(cid);
+        return new Result(HttpStatus.BAD_REQUEST.value(), "文章删除成功", null);
     }
 }
