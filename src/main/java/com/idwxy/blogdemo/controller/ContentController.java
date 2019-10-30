@@ -54,4 +54,26 @@ public class ContentController {
         contentService.deleteContent(cid);
         return new Result(HttpStatus.BAD_REQUEST.value(), "文章删除成功", null);
     }
+
+    @ApiOperation("更新文章")
+    @ApiImplicitParam(name = "tags", value = "文章标签，使用,号分隔", required = true)
+    @IsUser
+    @PutMapping("/{cid}")
+    @Validated
+    public Result updateContent(@PathVariable int cid,
+                                @RequestParam @Length(min = 1,max = 100) String title,
+                                @RequestParam @Length(min = 1) String content,
+                                @RequestParam @Length(min = 1) String tags) {
+        ContentEntity contentEntity = contentService.getContent(cid);
+        boolean isPermitted = contentEntity.getAuthorId() == Util.getCurrentUid();
+        if (! isPermitted) {
+            return new Result(HttpStatus.BAD_REQUEST.value(), "你无权更新别人的文章", null);
+        }
+        String[] tagsSpliced = tags.split(",");
+        if (tagsSpliced.length == 0) {
+            return new Result(HttpStatus.BAD_REQUEST.value(), "请至少输入一个标签", null);
+        }
+        contentService.updateContent(cid, title, content, tagsSpliced);
+        return new Result(HttpStatus.OK.value(), "文章更新成功", null);
+    }
 }
