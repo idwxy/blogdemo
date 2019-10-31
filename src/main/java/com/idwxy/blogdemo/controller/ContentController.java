@@ -15,6 +15,9 @@ import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/content")
 @Validated
@@ -75,5 +78,16 @@ public class ContentController {
         }
         contentService.updateContent(cid, title, content, tagsSpliced);
         return new Result(HttpStatus.OK.value(), "文章更新成功", null);
+    }
+
+    @ApiOperation("获取文章")
+    @GetMapping("/{cid}")
+    public Result getContent(@PathVariable int cid) {
+        ContentEntity contentEntity = contentService.getContent(cid);
+        Assert.notNull(contentEntity, "文章不存在");
+        Map<String, Object> data = new HashMap<>(2);
+        data.put("article", contentEntity);
+        data.put("tags", tagsService.getRelationshipsByCid(cid));
+        return new Result(HttpStatus.OK.value(), "获取文章成功", data);
     }
 }
